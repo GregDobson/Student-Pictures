@@ -7,7 +7,7 @@
 
 ;helper routines
 (define (sound-shuffle lst)
-  (play-sound "/System/Library/Sounds/Submarine.aiff" #t)
+  (bell)
   (shuffle lst))
 
 (define (read-picture triple) 
@@ -139,7 +139,7 @@
   ;read in names, pictures, and create initial list-of-groups
   (define names-filenames (read-csv-file "Class/Names.csv"))
   (define names-pics (map read-picture names-filenames))  
-  (define list-of-groups (divide-into-short-lists names-pics 3))
+  (define list-of-groups (divide-into-short-lists names-pics 1))
   (define iter-groups (make-iterator list-of-groups identity))
   
   ;create the pull down menu 
