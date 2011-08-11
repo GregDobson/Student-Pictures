@@ -2,23 +2,10 @@
 (require 2htdp/batch-io racket/gui/base framework
          (prefix-in gen: racket/generator))
 (require "SP-state-definition.rkt")
-#|
-(queue-length l-of-g)
-|#
-
-;SETUP: Read in data into big list
-;create double queue structure from big list and nsets
-;empty the double queue structure?
-;display:  set bitmap and name of cperson on frame
-
 
 ;declarations
 (struct person (name picture) #:transparent)
 
-
-
-#;(define (qoq->lol qoq)
-  (map queue->list (queue->list qoq)))
 
 
 ;helper routines
@@ -26,10 +13,10 @@
     (bell)
     (shuffle lst))
 
-(define (read-picture triple) 
+(define (read-picture base-of-path triple) 
   (person 
    (string-append (first triple) " " (second triple)) 
-   (read-bitmap (build-path "Class" (third triple)))))
+   (read-bitmap (build-path base-of-path (third triple)))))
 
 
 #;(define (make-iterator orig-lst func)
@@ -39,17 +26,6 @@
                      (loop (func orig-lst)))))
 
 
-(define (divide-into-short-lists 
-         the-list 
-         num-lists)
-  (define total (length the-list))
-  (define chunk (floor (/ total num-lists)))
-  (if (= total chunk) 
-      (list the-list)
-      (cons (take the-list chunk) 
-            (divide-into-short-lists 
-             (drop the-list chunk) 
-             (sub1 num-lists)))))
 
 (define (pull-down-menu-pairs total )
   (let loop ((k 1))
@@ -74,8 +50,7 @@
     (frame:standard-menus-mixin (frame:basic-mixin frame%)))
   
   ;helper routines
-  (define the-state
-     (lol->state (divide-into-short-lists names-pics 1)))
+  (define the-state  (create-state names-pics 1))
   
   
   (define menu-pairs 
@@ -90,22 +65,31 @@
       (drop menu-pairs (send menu get-selection)))))
   
   (define (display-state  st)
-    (send picture set-label (person-picture (state-cperson st)))
-    (send name set-label (person-name (state-cperson st))))
+    (if (state-cperson st)
+        (begin
+          (send picture set-label (person-picture (state-cperson st)))
+          (send name set-label (person-name (state-cperson st))) )
+        (begin
+          (send picture set-label (make-bitmap 300 400))
+          (send name set-label "no more people in group"))))
   
   (define (process-next-person b e) 
     (next-person the-state)
+    (display-state the-state))
+  
+  (define (process-omit-person b e)
+    (omit-person the-state)
     (display-state the-state))
   
   (define (process-next-group b e)
     (next-group the-state)
     (display-state the-state))
   
-  (define (which-menu c e)
-    (set! the-state
-          (lol->state
-            (divide-into-short-lists 
-             names-pics (num-sets-in-menu c)))))
+  (define (which-menu menu e)
+    (set! the-state (create-state 
+                     (append* (state->lol the-state))
+                     (num-sets-in-menu menu)))
+    (display-state the-state))
   
   ;doing stuff
   (define pics-frame 
@@ -144,8 +128,13 @@
                     (parent pics-window) 
                     (label "No Name") 
                     (auto-resize #t)))  
-  (define next-button (new button% (parent pics-window) (label "Next Person")
+  (define bot-panel 
+    (new horizontal-panel% (parent pics-window)))
+  (define next-button (new button% (parent bot-panel) (label "Next Person")
                            (callback process-next-person)))
+  (define omit-button (new button% (parent bot-panel) (label "Omit Person")
+                           (callback process-omit-person)))
+  
   ;Sets the picture
   (display-state the-state)
   
@@ -154,14 +143,27 @@
   
   (send pics-frame show #t)) 
 
+
+
+;(displayln (current-command-line-arguments))
 (let ()
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;read in names, pictures, and create initial list-of-groups
-  (define names-pics (map read-picture 
-                          (read-csv-file "Class/Names.csv")))  
+  ;(application-file-handler file-handler)
   
-  ;do it
-  (make-frame names-pics))
+  (define filepath 
+    (if (= 0 (vector-length (current-command-line-arguments)))
+        (finder:get-file)
+        (vector-ref (current-command-line-arguments) 0)))
+  
+  (define file-handler
+  (when filepath  
+    (define-values (base-of-path _1 _2) (split-path filepath)) 
+    (define names-pics      
+      (read-csv-file/rows 
+       (path->string filepath) 
+       (lambda (x) (read-picture base-of-path x))))  
+    (make-frame names-pics)))
 
 
 

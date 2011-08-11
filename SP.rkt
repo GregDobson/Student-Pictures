@@ -23,15 +23,6 @@
                (for-each gen:yield lst)
                (loop (func orig-lst)))))
 
-#|(define (make-iterator lst func)
-  (define remaining lst)
-  (lambda ()
-    (define result (first remaining))
-    (set! remaining (rest remaining))
-    (when (empty? remaining)
-      (set! remaining (func lst)))
-    result))
-|#
 
 (define (divide-into-short-lists 
          the-list 
@@ -73,16 +64,14 @@
     ;(displayln (format "current group =  ~a" (map person-name the-group)))
     (set! the-panel (make-panel the-group)))
   
-  (define (which-menu c e)
-    (define which (send c get-selection))
-    ;(displayln which)
-    (define nsets 
-      (first 
+  (define (num-sets-in-menu c)
+    (first 
        (first 
-        (drop menu-pairs which))))
-    ;(displayln (format " at which menu nsets= ~a" nsets))
+        (drop menu-pairs (send c get-selection)))))
+  
+  (define (which-menu c e)
     (set! col-lists 
-          (divide-into-short-lists names-pics nsets))
+          (divide-into-short-lists names-pics (num-sets-in-menu c)))
     (set! iter-groups (make-iterator col-lists identity)) 
     ;(displayln (map person-name (first col-lists)))
     (send  pics-window  delete-child the-panel)
