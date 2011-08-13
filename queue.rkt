@@ -5,10 +5,11 @@
          pop-func-push pop-func
          count count-qoq)
 ;implements an immutable queue with amoritized O(1) operations for 
-; top , pop, push-back
-; using two lists: 'in' for pushing onto, 'out' for poping off of
+; top , pop, push-back push-front
+; using two lists: 'in' for pushing-back onto, 'out' for poping off of
 ; make (empty empty) the empty list
 ; if there is only one element x then it is stored as (empty 'x)
+; which makes top easier
 
 (struct queue (in out) #:transparent)
 
@@ -28,11 +29,9 @@
       (error "popping and empty list")
       (if (cons? (rest (queue-out q)))
           (queue (queue-in q) (rest (queue-out q)))
-          (let* ((len (length(queue-in q)))
-                 (kin (floor (/ len 2))))
-            (queue 
-             (take (queue-in q) kin)  
-             (reverse (drop (queue-in q) kin))))))) 
+          (let ((kin (floor (/ (length(queue-in q)) 2))))
+            (queue (take (queue-in q) kin)  
+                   (reverse (drop (queue-in q) kin))))))) 
 
 (define (push-back q x)
   (if (empty-queue? q)
@@ -46,30 +45,32 @@
   (queue empty lst))
 
 (define (queue->list q)
-   (append (queue-out q) (reverse (queue-in q))))
+  (append (queue-out q) (reverse (queue-in q))))
 
 (define (add-list-to-queue q lst)
   (queue (append (reverse lst) (queue-in q)) (queue-out q)))
 
-(define (pop-func q func)
+(define (generic-pop-push-func q func next-queue)
   (if (empty-queue? q)
       (begin (func empty) q)
-      (let ((q2 (queue (queue-in q)
-                       (rest (queue-out q)))))
+      (let ((q2 (next-queue q)))
         (if (empty? (queue-out q2))
-            (queue empty (func (queue-in q2)))
+            (queue empty (func (reverse (queue-in q2))))
             q2))))
 
+(define (pop-func q func)
+  (generic-pop-push-func 
+   q func (lambda (x) #| just pop |# 
+            (queue 
+             (queue-in x) 
+             (rest (queue-out x))))))
+
 (define (pop-func-push q func)
-  #;(printf "pop-push (~a,~a)\n" (length (queue-in q)) 
-          (length (queue-out q)))
-  (if (empty-queue? q)
-      (begin (func empty) q)
-      (let ((q2 (queue (cons (first (queue-out q)) (queue-in q))
-                       (rest (queue-out q)))))
-        (if (empty? (queue-out q2))
-            (queue empty (func (queue-in q2)))
-            q2))))
+  (generic-pop-push-func
+   q func (lambda(x) #| pop then push-back |# 
+            (queue 
+             (cons (first (queue-out q)) (queue-in q)) 
+             (rest (queue-out q))))))
 
 (define (count q)
   (+ (length (queue-in q)) 

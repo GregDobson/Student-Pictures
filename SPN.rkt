@@ -54,7 +54,8 @@
     
     (define (pull-down-menu-strings pairs)
       (define (one-string pair)
-        (format "~a groups of size ~a" (first pair) (second pair)))
+        (format "~a group~a of size ~a" 
+                (first pair) (if (= (first pair) 1) "" "s") (second pair)))
       (map one-string pairs))
     
     ;computation
