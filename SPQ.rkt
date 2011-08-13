@@ -156,7 +156,6 @@
         (finder:get-file)
         (vector-ref (current-command-line-arguments) 0)))
   
-  (define file-handler
   (when filepath  
     (define-values (base-of-path _1 _2) (split-path filepath)) 
     (define names-pics      
