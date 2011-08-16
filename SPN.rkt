@@ -69,6 +69,9 @@
   (define (process-next-person b e) 
     (display-person (compute-state 'next 0)))
   
+  (define (process-previous-person b e)
+    (display-person (compute-state 'previous 0)))
+  
   (define (process-omit-person b e)
     (let ((the-state (compute-state 'omit 0)))
       (display-person the-state)
@@ -76,6 +79,12 @@
   
   (define (process-next-group b e)
     (display-person (compute-state 'group 0)))
+  
+  (define (process-previous-group b e)
+    ;(displayln "at previous group")
+    (display-person (compute-state 'previousgroup 0)))
+  
+  
   
   (define (which-menu the-menu e)
     (let ((selection   (send the-menu get-selection)))
@@ -100,21 +109,35 @@
   
   ; Setup the top panel on the frame:  next group button and pull down menu
   (define top-panel 
-    (new horizontal-panel% (parent pics-window)))
-  
-  ; create the pull down menu for "how many groups of what size"
-  (define the-menu 
+    (new horizontal-panel% (parent pics-window)
+         (alignment '(center center)) ))
+ 
+   (define the-menu 
     (new choice% 
          (label #f)
-         (choices (list "---------------------") )
+         (choices (list "-------------") )
          (parent top-panel)
          (callback which-menu)))
+
+   (define group-panel 
+    (new horizontal-panel% (parent pics-window)
+         (alignment '(center center))))
+  
+  
+  ; create the pull down menu for "how many groups of what size"
+  (define previous-group-button  
+    (new button% 
+         (parent group-panel) 
+         (label "Previous Group")
+         (callback process-previous-group)
+         (min-width 20)))
   
   (define next-group-button  
     (new button% 
-         (parent top-panel) 
+         (parent group-panel) 
          (label "Next Group")
-         (callback process-next-group)))
+         (callback process-next-group)
+         (min-width 20)))
   
   
   
@@ -126,11 +149,15 @@
                     (label "No Name") 
                     (auto-resize #t)))  
   (define bot-panel 
-    (new horizontal-panel% (parent pics-window)))
-  (define next-button (new button% (parent bot-panel) (label "Next Person")
-                           (callback process-next-person)))
+    (new horizontal-panel% (parent pics-window)
+         (alignment '(center center) )))
+  
+  (define previous-button (new button% (parent bot-panel) (label "Previous Person")
+                           (callback process-previous-person)))
   (define omit-button (new button% (parent bot-panel) (label "Omit Person")
                            (callback process-omit-person)))
+ (define next-button (new button% (parent bot-panel) (label "Next Person")
+                           (callback process-next-person)))
  
   ;make frame visible, read data and compute initial state
   (send pics-frame show #t)

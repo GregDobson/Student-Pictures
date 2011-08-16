@@ -1,6 +1,6 @@
 #lang racket
 (provide empty-queue empty-queue?
-         top pop push-back  push-front  
+         top bottom pop push-back pop-back push-front  
          queue->list list->queue add-list-to-queue
          pop-func-push pop-func
          count count-qoq)
@@ -24,6 +24,13 @@
       #f
       (first (queue-out q))))
 
+(define (bottom q)
+  (if (empty-queue? q)
+      #f
+      (if (cons? (queue-in q))
+          (first (queue-in q))
+          (first (reverse (queue-out q))))))
+
 (define (pop q)
   (if (empty-queue? q)
       (error "popping and empty list")
@@ -31,7 +38,17 @@
           (queue (queue-in q) (rest (queue-out q)))
           (let ((kin (floor (/ (length(queue-in q)) 2))))
             (queue (take (queue-in q) kin)  
-                   (reverse (drop (queue-in q) kin))))))) 
+                   (reverse (drop (queue-in q) kin)))))))
+
+; add pop-back
+(define (pop-back q)
+  (if (empty-queue? q)
+      (error "popping and empty list") 
+      (if (not (empty? (queue-in q)))
+          (queue (rest (queue-in q))  (queue-out q))
+          (let ((kin (floor (/ (length(queue-out q)) 2))))
+            (queue (rest (reverse (drop (queue-out q) kin)))  
+                   (take (queue-out q) kin))))))
 
 (define (push-back q x)
   (if (empty-queue? q)
@@ -72,6 +89,7 @@
              (cons (first (queue-out q)) (queue-in q)) 
              (rest (queue-out q))))))
 
+
 (define (count q)
   (+ (length (queue-in q)) 
      (length (queue-out q))))
@@ -80,3 +98,37 @@
   (+  (apply + 0 (map count (queue-in q))) 
       (apply + 0 (map count (queue-out q)))))
 
+#|
+(define q1 (list->queue (list 1 2 3 4 5)))
+q1
+(top q1)
+(bottom q1)
+(define q2 (pop q1))
+q2
+(top q2)
+(bottom q2)
+(define q3 (pop-back q2))
+q3
+(top q3)
+(bottom q3)
+(define q4 (pop-back q3))
+q4
+(top q4)
+(bottom q4)
+(define q5 (pop-back q4))
+q5
+(top q5)
+(bottom q5)
+(define q6 (push-front q5 100))
+q6
+(top q6)
+(bottom q6)
+(define q7 (push-front q6 101))
+q7
+(top q7)
+(bottom q7)
+(define q8 (pop-back q7))
+q8
+(top q8)
+(bottom q8)
+|#
