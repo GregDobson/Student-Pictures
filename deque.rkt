@@ -5,11 +5,11 @@
          pop-func-push pop-func
          count count-qoq)
 ;implements an immutable deque with amoritized O(1) operations for 
-; top , pop, push-back push-front
+; front , pop, push-back push-front
 ; using two lists: 'in' for pushing-back onto, 'out' for poping off of
 ; make (empty empty) the empty list
 ; if there is only one element x then it is stored as (empty 'x)
-; which makes top easier
+; which makes front easier
 
 (struct deque (in out) #:transparent)
 
@@ -33,7 +33,7 @@
 
 (define (pop-front q)
   (if (empty-deque? q)
-      (error "popping and empty list")
+      q
       (if (cons? (rest (deque-out q)))
           (deque (deque-in q) (rest (deque-out q)))
           (let ((kin (floor (/ (length(deque-in q)) 2))))
@@ -43,7 +43,7 @@
 ; add pop-back
 (define (pop-back q)
   (if (empty-deque? q)
-      (error "popping and empty list") 
+      q 
       (if (not (empty? (deque-in q)))
           (deque (rest (deque-in q))  (deque-out q))
           (let ((kin (floor (/ (length(deque-out q)) 2))))
@@ -98,37 +98,37 @@
   (+  (apply + 0 (map count (deque-in q))) 
       (apply + 0 (map count (deque-out q)))))
 
-#|
+
 (define q1 (list->deque (list 1 2 3 4 5)))
 q1
-(top q1)
-(bottom q1)
-(define q2 (pop q1))
+(front q1)
+(back q1)
+(define q2 (pop-front q1))
 q2
-(top q2)
-(bottom q2)
+(front q2)
+(back q2)
 (define q3 (pop-back q2))
 q3
-(top q3)
-(bottom q3)
+(front q3)
+(back q3)
 (define q4 (pop-back q3))
 q4
-(top q4)
-(bottom q4)
+(front q4)
+(back q4)
 (define q5 (pop-back q4))
 q5
-(top q5)
-(bottom q5)
+(front q5)
+(back q5)
 (define q6 (push-front q5 100))
 q6
-(top q6)
-(bottom q6)
+(front q6)
+(back q6)
 (define q7 (push-front q6 101))
 q7
-(top q7)
-(bottom q7)
+(front q7)
+(back q7)
 (define q8 (pop-back q7))
 q8
-(top q8)
-(bottom q8)
-|#
+(front q8)
+(back q8)
+

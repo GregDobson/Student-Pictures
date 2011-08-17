@@ -1,6 +1,6 @@
 #lang racket
 (require 2htdp/batch-io racket/gui/base framework
-         (prefix-in gen: racket/generator) "queue.rkt")
+         (prefix-in gen: racket/generator) "deque.rkt")
 (provide compute-state)
 
 ;routine for formin or reforming groups
@@ -19,7 +19,7 @@
                  (sub1 num-lists))))))
   
   (define (lol->qoq lol)
-    (list->queue  (map list->queue lol)))
+    (list->deque  (map list->deque lol)))
   
   ;computation
   (lol->qoq (list->short-lists lst ngroups)))
@@ -28,7 +28,7 @@
 (define (qoq->qoq the-qoq ngroups)
   ;helpers
   (define (qoq->list qoq)
-    (append* (map queue->list (queue->list qoq))))
+    (append* (map deque->list (deque->list qoq))))
   ;computation
   (list->qoq (qoq->list the-qoq) ngroups))
 
@@ -47,18 +47,19 @@
        
        (define next-state
          (case who
-           [(next)    (let ((g (pop-func-push (top current-state) shuffle-bell)))
-                        (push-front (pop current-state) g))]
-           [(previous) (let ((g (push-front (pop-back (top current-state)) (bottom (top current-state)))))
-                         (push-front (pop current-state) g))]
+           [(next)    (let ((g (pop-func-push (front current-state) shuffle-bell)))
+                        (push-front (pop-front current-state) g))]
+           [(previous) (let ((g (push-front (pop-back (front current-state)) 
+                                            (back (front current-state)))))
+                         (push-front (pop-front current-state) g))]
            
-           [(omit)    (let ((g (pop-func (top current-state) shuffle-bell)))
-                        (push-front (pop current-state) g))]
+           [(omit)    (let ((g (pop-func (front current-state) shuffle-bell)))
+                        (push-front (pop-front current-state) g))]
            
            [(group)   (pop-func-push  current-state identity)]
            [(previousgroup) 
             ;(display "previous group in compute state")
-            (push-front (pop-back current-state) (bottom current-state))]
+            (push-front (pop-back current-state) (back current-state))]
            
            [(menu)    (qoq->qoq current-state num-groups)]
            [(initial) current-state]

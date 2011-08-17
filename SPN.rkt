@@ -1,7 +1,7 @@
 #lang racket
 (require 2htdp/batch-io racket/gui/base framework
          (prefix-in gen: racket/generator )
-         "queue.rkt"
+         "deque.rkt"
          "SPN-state.rkt")
 
 ;declarations
@@ -33,7 +33,7 @@
 (define (GUI)
   ;sets/resets the picture and name of the current picture in the window
   (define (display-person  st)
-    (let ((person (top (top st))))
+    (let ((person (front (front st))))
       (if person
           (begin
             (send picture set-label (person-picture person))
@@ -107,7 +107,7 @@
   
   (define pics-window (send pics-frame get-area-container))  
   
-  ; Setup the top panel on the frame:  next group button and pull down menu
+  ; Setup the front panel on the frame:  next group button and pull down menu
   (define top-panel 
     (new horizontal-panel% (parent pics-window)
          (alignment '(center center)) ))
