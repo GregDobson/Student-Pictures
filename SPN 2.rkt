@@ -5,7 +5,7 @@
          "SPN-state.rkt")
 
 
-;declarations
+;declarations...
 (struct person (name picture) #:transparent)
 
 ;routine reads data from appropriate place, returns list of struct person
