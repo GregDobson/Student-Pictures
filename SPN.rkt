@@ -114,9 +114,16 @@
       (unless (zero? selection)
         (display-person (compute-state 'menu selection)))))
   
+ (define my-frame%
+   (class frame%
+     
+     (super-new)
+     (define
+     ))
+  
   ;sets up the standard menus, so, for example, cmd-W works 
   (define actual-frame%
-    (frame:standard-menus-mixin (frame:basic-mixin frame%)))
+    (frame:standard-menus-mixin (frame:basic-mixin my-frame%)))
   
   
   ;define the frame
