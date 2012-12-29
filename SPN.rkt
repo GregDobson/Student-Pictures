@@ -39,8 +39,8 @@
     (define-values (base-of-path _1 _2) (split-path filepath))
     (shuffle 
      (read-csv-file/rows 
-     (path->string filepath) 
-     (lambda (x) (read-picture base-of-path x))))))
+      (path->string filepath) 
+      (lambda (x) (read-picture base-of-path x))))))
 
 ;GUI structure
 (define (GUI)
@@ -90,21 +90,21 @@
     (map (lambda (item) (send the-menu append item)) menu-strings))
   
   ;routines that respond to buttons and menus
-  (define (process-next-person b e) 
+  (define (process-next-person) 
     (display-person (compute-state 'next 0)))
   
-  (define (process-previous-person b e)
+  (define (process-previous-person)
     (display-person (compute-state 'previous 0)))
   
-  (define (process-omit-person b e)
+  (define (process-omit-person)
     (let ((the-state (compute-state 'omit 0)))
       (display-person the-state)
       (display-menu the-menu the-state)))
   
-  (define (process-next-group b e)
+  (define (process-next-group)
     (display-person (compute-state 'group 0)))
   
-  (define (process-previous-group b e)
+  (define (process-previous-group)
     (display-person (compute-state 'previousgroup 0)))
   
   
@@ -114,12 +114,23 @@
       (unless (zero? selection)
         (display-person (compute-state 'menu selection)))))
   
- (define my-frame%
-   (class frame%
-     
-     (super-new)
-  
-     ))
+  ; create a subclass of standard frame class for the purpose of capturing
+  ; arrow keys, left and right for next and previous person, and
+  ; Command arrow keys, cmd-left and cmd-right for next and previous groups
+  (define my-frame%
+    (class frame%   
+      (super-new)
+      (define/override (on-subwindow-char receiver event)
+        (define aKey (send event get-key-code))
+        (define metaKey (send event get-meta-down))
+        (if metaKey 
+            (cond 
+              ((equal? aKey 'right) (process-next-group))
+              ((equal? aKey 'left)   (process-previous-group)))
+            (cond 
+              ((equal? aKey 'right) (process-next-person))
+              ((equal? aKey 'left)   (process-previous-person))))
+        (super on-subwindow-char receiver event))))
   
   ;sets up the standard menus, so, for example, cmd-W works 
   (define actual-frame%
@@ -159,7 +170,7 @@
     (new button% 
          (parent group-panel) 
          (label "Previous Group")
-         (callback process-previous-group)
+         (callback (lambda (b e) (process-previous-group)))
          (min-width 20)))
   
   (define which-group (new message% 
@@ -171,7 +182,7 @@
     (new button% 
          (parent group-panel) 
          (label "Next Group")
-         (callback process-next-group)
+         (callback (lambda (b e) (process-next-group)))
          (min-width 20)))
   
   
@@ -191,7 +202,7 @@
   
   
   (define previous-button (new button% (parent person-panel) (label "Previous Person")
-                               (callback process-previous-person)))
+                               (callback (lambda (b e) (process-previous-person)))))
   
   (define which-person (new message% 
                             (parent person-panel) 
@@ -199,14 +210,14 @@
                             (auto-resize #f)))
   
   (define next-button (new button% (parent person-panel) (label "Next Person")
-                           (callback process-next-person)))
+                           (callback (lambda (b e) (process-next-person)))))
   
   (define omit-panel 
     (new horizontal-panel% (parent pics-window)
          (alignment '(center center) )))
   
   (define omit-button (new button% (parent omit-panel) (label "Omit Person")
-                           (callback process-omit-person)))
+                           (callback (lambda (b e) (process-omit-person)))))
   
   ;make frame visible, read data and compute initial state
   (define the-state (compute-state (read-data)))
