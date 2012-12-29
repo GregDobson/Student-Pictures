@@ -37,10 +37,10 @@
   
   (when filepath  
     (define-values (base-of-path _1 _2) (split-path filepath))
-    (read-csv-file/rows 
+    (shuffle 
+     (read-csv-file/rows 
      (path->string filepath) 
-     (lambda (x) (read-picture base-of-path x)))))
-
+     (lambda (x) (read-picture base-of-path x))))))
 
 ;GUI structure
 (define (GUI)
@@ -118,7 +118,7 @@
    (class frame%
      
      (super-new)
-     (define
+  
      ))
   
   ;sets up the standard menus, so, for example, cmd-W works 
