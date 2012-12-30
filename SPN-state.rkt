@@ -13,14 +13,14 @@
   (define (list->short-lists 
            the-list 
            num-lists)
+    
     (let*  ((total (length the-list)) 
             (chunk (floor (/ total num-lists))))
+      ;(displayln (list total num-lists chunk))
       (if (= total chunk) 
           (list the-list)
           (cons (take the-list chunk) 
-                (list->short-lists 
-                 (drop the-list chunk) 
-                 (sub1 num-lists))))))
+                (list->short-lists (drop the-list chunk) (sub1 num-lists))))))
   
   (define (lol->qoq lol)
     (list->deque  (map list->deque lol)))

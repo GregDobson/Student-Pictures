@@ -69,25 +69,43 @@
   ;sets/resets the menu with the correct options
   (define (display-menu the-menu the-state)
     ;helpers
-    (define (pull-down-menu-pairs total )
+    (define (pull-down-menu-triplets total )
       (let loop ((k 1))
         (let ((s (ceiling (/ total k))))
+          (define s2 (floor (/ total k)))
           (if (<= (/ total k) 5) 
-              (list (list k s))
-              (cons (list k s) (loop (ceiling (/ total (sub1 s))))))))) 
+              (list (list k s s2))
+              (cons (list k s s2) (loop (add1 k))))))) 
     
-    (define (pull-down-menu-strings pairs)
-      (define (one-string pair)
-        (format "~a group~a of size ~a" 
-                (first pair) (if (= (first pair) 1) "" "s") (second pair)))
-      (map one-string pairs))
+    (define (pull-down-menu-strings triplets)
+      (define (one-string triplet)
+        (if (= (second triplet) (third triplet))
+            (format "~a group~a of size ~a" 
+                    (first triplet) (if (= (first triplet) 1) "" "s") (second triplet))
+            (format "~a group~a of size ~a or ~a" 
+                    (first triplet) (if (= (first triplet) 1) "" "s") (third triplet) (second triplet) )))
+      (map one-string triplets))
+    
+   ; decided that this reduction was not necessary and could give the user choice of any size group
+    #;(define (reduce pairs)
+      (define a-hash 
+        (for/fold  ((h (hash)))  (( pair pairs))
+          (if (hash-has-key? h (second pair))
+              h
+              (hash-set h (second pair) (first pair)))))    
+      (define reduced-list 
+        (for/list (((key value) a-hash)) (list value key)))     
+      (sort reduced-list < #:key first))
+    
     
     ;computation
-    (define menu-pairs (pull-down-menu-pairs (count-qoq (state-qoq the-state))))
-    (define menu-strings (pull-down-menu-strings menu-pairs))
+    (define menu-pairs (pull-down-menu-triplets (count-qoq (state-qoq the-state))))
+    ;(define reduced-menu-pairs (reduce menu-pairs))   ; gave user choice of all possible # of groups
+    (define menu-strings (pull-down-menu-strings menu-pairs));reduced-menu-pairs))
     (send the-menu clear)
     (send the-menu append "               ")
     (map (lambda (item) (send the-menu append item)) menu-strings))
+  
   
   ;routines that respond to buttons and menus
   (define (process-next-person) 
@@ -110,9 +128,11 @@
   
   
   (define (which-menu the-menu e)
-    (let ((selection   (send the-menu get-selection)))
+    (let* ((selection   (send the-menu get-selection))) 
       (unless (zero? selection)
-        (display-person (compute-state 'menu selection)))))
+        (define string-selected (send the-menu get-string-selection))
+        (define n-groups (string->number (first (regexp-split #px" "  string-selected))))
+        (display-person (compute-state 'menu n-groups)))))
   
   ; create a subclass of standard frame class for the purpose of capturing
   ; arrow keys, left and right for next and previous person, and
