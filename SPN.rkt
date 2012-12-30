@@ -9,12 +9,8 @@
 (struct person (name picture) #:transparent)
 
 ;routine reads data from appropriate place, returns list of struct person
-(define (read-data)
+(define (read-data filepath)
   (define (read-picture base-of-path triple)
-    #;(displayln (format "first= ~a  second = ~a  filename= ~a   baseofpath= ~a"
-                         (first triple) 
-                         (second triple) (third triple)
-                         (path->string base-of-path)))
     (person 
      (string-append (first triple) " " (second triple))
      (let ((path (build-path base-of-path (third triple))))
@@ -28,13 +24,7 @@
                    (send read-bitmap get-height))
              mybitmap)
            (make-bitmap 300 400)))))
-  
-  (define filepath
-    #;(string->path "Class/Names.csv")
-    (if (= 0 (vector-length (current-command-line-arguments)))
-        (finder:get-file)
-        (vector-ref (current-command-line-arguments) 0)))
-  
+    
   (when filepath  
     (define-values (base-of-path _1 _2) (split-path filepath))
     (shuffle 
@@ -43,7 +33,7 @@
       (lambda (x) (read-picture base-of-path x))))))
 
 ;GUI structure
-(define (GUI)
+(define (GUI the-student-list)
   ;sets/resets the counts on the window for the group and the person
   (define (display-counts group person counts)
     (send group set-label 
@@ -86,16 +76,16 @@
                     (first triplet) (if (= (first triplet) 1) "" "s") (third triplet) (second triplet) )))
       (map one-string triplets))
     
-   ; decided that this reduction was not necessary and could give the user choice of any size group
+    ; decided that this reduction was not necessary and could give the user choice of any size group
     #;(define (reduce pairs)
-      (define a-hash 
-        (for/fold  ((h (hash)))  (( pair pairs))
-          (if (hash-has-key? h (second pair))
-              h
-              (hash-set h (second pair) (first pair)))))    
-      (define reduced-list 
-        (for/list (((key value) a-hash)) (list value key)))     
-      (sort reduced-list < #:key first))
+        (define a-hash 
+          (for/fold  ((h (hash)))  (( pair pairs))
+            (if (hash-has-key? h (second pair))
+                h
+                (hash-set h (second pair) (first pair)))))    
+        (define reduced-list 
+          (for/list (((key value) a-hash)) (list value key)))     
+        (sort reduced-list < #:key first))
     
     
     ;computation
@@ -240,7 +230,7 @@
                            (callback (lambda (b e) (process-omit-person)))))
   
   ;make frame visible, read data and compute initial state
-  (define the-state (compute-state (read-data)))
+  (define the-state (compute-state the-student-list))
   
   ;display initial state
   (display-person the-state)
@@ -249,6 +239,20 @@
   
   #f)
 
+(define (startup path) 
+  (define the-student-list (read-data path))
+   (GUI  the-student-list))
+
 ;do it
-(GUI)
+(application-start-empty-handler 
+ (lambda ()
+   startup (finder:get-file)))
+
+(application-file-handler 
+ startup)
+;
+; if debugging may want to put this in to avoid having to call from SPN.app 
+; each time
+;(startup (finder:get-file))
+   
 
